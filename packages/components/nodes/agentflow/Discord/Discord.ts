@@ -1,13 +1,6 @@
 import { INode, INodeParams, INodeData, ICommonObject } from '../../../src/Interface'
-
-const NAME = 'discord'
-// Import the existing implementations
-const { nodeClass: DiscordRetrieveMessages } = require('./messages/Retrieve')
-const { nodeClass: DiscordSendMessage } = require('./messages/Send')
-
-// Instantiate to reuse their input definitions and run logic
-const retrieveMessages = new DiscordRetrieveMessages(NAME)
-const sendMessage = new DiscordSendMessage(NAME)
+import DiscordMessageSend from './messages/Send'
+import DiscordMessageRetrieve from './messages/Retrieve'
 
 /**
  * Discord Agent Flow Node
@@ -16,7 +9,7 @@ const sendMessage = new DiscordSendMessage(NAME)
  */
 export class Discord_Agentflow implements INode {
     label = 'Discord'
-    name = NAME
+    name = 'discord'
     version = 1.0
     icon = 'discord.svg'
     type = 'utility'
@@ -48,21 +41,23 @@ export class Discord_Agentflow implements INode {
             name: 'mode',
             type: 'options',
             options: [
-                { label: 'Retrieve Messages', name: DiscordRetrieveMessages.MODE },
-                { label: 'Send Message', name: DiscordSendMessage.MODE }
+                { label: 'Retrieve Messages', name: DiscordMessageRetrieve.mode },
+                { label: 'Send Message', name: DiscordMessageSend.mode }
             ],
             default: 'retrieve',
             description: 'Select the operation to perform'
         },
-        ...retrieveMessages.inputs,
-        ...sendMessage.inputs
+        ...DiscordMessageRetrieve.inputs,
+        ...DiscordMessageSend.inputs
     ]
 
     async run(nodeData: INodeData, runId: string, options: ICommonObject) {
         const mode = nodeData.inputs?.mode as string
-        if (mode === DiscordRetrieveMessages.MODE) {
+        if (mode === DiscordMessageRetrieve.mode) {
+            const retrieveMessages = new DiscordMessageRetrieve(this.name)
             return await retrieveMessages.run(nodeData, runId, options)
-        } else if (mode === DiscordSendMessage.MODE) {
+        } else if (mode === DiscordMessageSend.mode) {
+            const sendMessage = new DiscordMessageSend(this.name)
             return await sendMessage.run(nodeData, runId, options)
         }
         throw new Error(`Unsupported mode: ${mode}.`)

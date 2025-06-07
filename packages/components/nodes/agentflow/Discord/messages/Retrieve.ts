@@ -1,19 +1,16 @@
 import { INodeParams, INodeData, ICommonObject } from '../../../../src/Interface'
 import { getCredentialData, getCredentialParam } from '../../../../src/utils'
 import axios from 'axios'
-import { DiscordMessagesOutput } from '../types'
+import { DiscordMessage, DiscordMessagesOutput } from '../types'
+import getErrorMessage from '../utils'
 
 /**
  * Discord Channel Messages (supporting before, after, around)
  */
-export class DiscordMessageRetrieve {
-    public static MODE = 'retrieve'
-    name: string
-    constructor(name: string) {
-        this.name = name
-    }
-
-    inputs: INodeParams[] = [
+class DiscordMessageRetrieve {
+    private name: string
+    public static mode = 'retrieve'
+    public static inputs: INodeParams[] = [
         {
             label: 'Limit',
             name: 'limit',
@@ -21,7 +18,7 @@ export class DiscordMessageRetrieve {
             default: 50,
             description: 'Max messages to retrieve (1–100)',
             show: {
-                mode: [DiscordMessageRetrieve.MODE]
+                mode: [DiscordMessageRetrieve.mode]
             }
         },
         {
@@ -31,7 +28,7 @@ export class DiscordMessageRetrieve {
             description: 'Fetch messages **before** this message ID',
             optional: true,
             show: {
-                mode: [DiscordMessageRetrieve.MODE]
+                mode: [DiscordMessageRetrieve.mode]
             }
         },
         {
@@ -41,7 +38,7 @@ export class DiscordMessageRetrieve {
             description: 'Fetch messages **after** this message ID',
             optional: true,
             show: {
-                mode: [DiscordMessageRetrieve.MODE]
+                mode: [DiscordMessageRetrieve.mode]
             }
         },
         {
@@ -51,11 +48,27 @@ export class DiscordMessageRetrieve {
             description: 'Fetch messages **around** this message ID (half before/half after; up to `limit`)',
             optional: true,
             show: {
-                mode: [DiscordMessageRetrieve.MODE]
+                mode: [DiscordMessageRetrieve.mode]
             }
         }
     ]
 
+    /**
+     * Constructor to initialize the node with a name
+     * @param name Name of the node
+     */
+    constructor(name: string) {
+        this.name = name
+    }
+
+    /**
+     * Retrieve messages from a Discord channel
+     * @param nodeData Node data containing inputs and credentials
+     * @param runId Unique run identifier
+     * @param options Additional runtime options
+     * @return Promise containing the retrieved messages and metadata
+     * @throws Error if credentials or parameters are invalid
+     */
     async run(nodeData: INodeData, runId: string, options: ICommonObject): Promise<DiscordMessagesOutput> {
         // 1. Fetch credentials
         const creds = await getCredentialData(nodeData.credential ?? '', options)
@@ -88,6 +101,23 @@ export class DiscordMessageRetrieve {
         if (!channelId?.trim()) {
             throw new Error('Channel ID is required and cannot be empty')
         }
+
+        if (!/^\d{17,19}$/.test(channelId.trim())) {
+            throw new Error('Channel ID must be a valid Discord snowflake (17-19 digit number)')
+        }
+
+        if (beforeId && !/^\d{17,19}$/.test(beforeId)) {
+            throw new Error('Invalid beforeId snowflake')
+        }
+
+        if (afterId && !/^\d{17,19}$/.test(afterId)) {
+            throw new Error('Invalid afterId snowflake')
+        }
+
+        if (aroundId && !/^\d{17,19}$/.test(aroundId)) {
+            throw new Error('Invalid aroundId snowflake')
+        }
+
         if (limit < 1 || limit > 100) {
             throw new Error('Limit must be between 1 and 100')
         }
@@ -111,23 +141,9 @@ export class DiscordMessageRetrieve {
                     'Content-Type': 'application/json'
                 }
             })
-            messages = response.data
+            messages = response.data as DiscordMessage[]
         } catch (err: any) {
-            if (!err.response) {
-                // No response came back (timeout, DNS, etc.)
-                throw new Error(`Network error when contacting Discord: ${err.message}`)
-            }
-
-            // Handle HTTP errors from Discord API
-            const status = err.response?.status
-            const detail = err.response?.data ?? err.message
-
-            // Handle Discord rate limiting error
-            if (status === 429) {
-                const retryAfter = err.response?.headers['retry-after']
-                throw new Error(`Discord API rate limited. Retry after ${retryAfter} seconds`)
-            }
-            throw new Error(`Discord API Error (${status}): ${JSON.stringify(detail)}`)
+            throw new Error(getErrorMessage(err))
         }
 
         // 6. Return structured output
@@ -153,4 +169,4 @@ export class DiscordMessageRetrieve {
     }
 }
 
-module.exports = { nodeClass: DiscordMessageRetrieve }
+export default DiscordMessageRetrieve

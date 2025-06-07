@@ -2,18 +2,15 @@ import { INodeParams, INodeData, ICommonObject } from '../../../../src/Interface
 import { getCredentialData, getCredentialParam } from '../../../../src/utils'
 import axios from 'axios'
 import { DiscordSendMessageOutput, DiscordMessage } from '../types'
+import getErrorMessage from '../utils'
 
 /**
  * Discord Send Message
  */
-export class DiscordSendMessage {
-    public static MODE = 'send'
-    name: string
-    constructor(name: string) {
-        this.name = name
-    }
-
-    inputs: INodeParams[] = [
+class DiscordMessageSend {
+    private name: string
+    public static mode = 'send'
+    public static inputs: INodeParams[] = [
         {
             label: 'Message Content',
             name: 'content',
@@ -23,7 +20,7 @@ export class DiscordSendMessage {
             rows: 4,
             acceptVariable: true,
             show: {
-                mode: [DiscordSendMessage.MODE]
+                mode: [DiscordMessageSend.mode]
             }
         },
         {
@@ -34,7 +31,7 @@ export class DiscordSendMessage {
             optional: true,
             acceptVariable: true,
             show: {
-                mode: [DiscordSendMessage.MODE]
+                mode: [DiscordMessageSend.mode]
             }
         },
         {
@@ -45,7 +42,7 @@ export class DiscordSendMessage {
             optional: true,
             acceptVariable: true,
             show: {
-                mode: [DiscordSendMessage.MODE]
+                mode: [DiscordMessageSend.mode]
             }
         },
         {
@@ -57,7 +54,7 @@ export class DiscordSendMessage {
             rows: 3,
             acceptVariable: true,
             show: {
-                mode: [DiscordSendMessage.MODE]
+                mode: [DiscordMessageSend.mode]
             }
         },
         {
@@ -67,7 +64,7 @@ export class DiscordSendMessage {
             description: 'Hex color for embed (e.g. #FF0000 or 16711680)',
             optional: true,
             show: {
-                mode: [DiscordSendMessage.MODE]
+                mode: [DiscordMessageSend.mode]
             }
         },
         {
@@ -78,7 +75,7 @@ export class DiscordSendMessage {
             optional: true,
             acceptVariable: true,
             show: {
-                mode: [DiscordSendMessage.MODE]
+                mode: [DiscordMessageSend.mode]
             }
         },
         {
@@ -89,7 +86,7 @@ export class DiscordSendMessage {
             optional: true,
             acceptVariable: true,
             show: {
-                mode: [DiscordSendMessage.MODE]
+                mode: [DiscordMessageSend.mode]
             }
         },
         {
@@ -100,11 +97,27 @@ export class DiscordSendMessage {
             optional: true,
             acceptVariable: true,
             show: {
-                mode: [DiscordSendMessage.MODE]
+                mode: [DiscordMessageSend.mode]
             }
         }
     ]
 
+    /**
+     * Constructor to initialize the node with a name
+     * @param name Name of the node
+     */
+    constructor(name: string) {
+        this.name = name
+    }
+
+    /**
+     * Send a message to a Discord channel
+     * @param nodeData Node data containing inputs and credentials
+     * @param runId Unique run ID for this execution
+     * @param options Additional runtime options
+     * @returns Structured output with sent message details
+     * @throws Error if any validation fails or API call fails
+     */
     async run(nodeData: INodeData, runId: string, options: ICommonObject): Promise<DiscordSendMessageOutput> {
         // 1. Fetch credentials
         const creds = await getCredentialData(nodeData.credential ?? '', options)
@@ -197,28 +210,7 @@ export class DiscordSendMessage {
             })
             sentMessage = response.data
         } catch (err: any) {
-            if (!err.response) {
-                throw new Error(`Network error when contacting Discord: ${err.message}`)
-            }
-
-            const status = err.response?.status
-            const detail = err.response?.data ?? err.message
-
-            // Handle specific Discord API errors
-            if (status === 403) {
-                throw new Error('Bot lacks permission to send messages in this channel')
-            } else if (status === 404) {
-                throw new Error('Channel not found or bot cannot access it')
-            } else if (status === 401) {
-                throw new Error('Invalid bot token')
-            } else if (status === 429) {
-                const retryAfter = err.response?.headers['retry-after']
-                throw new Error(`Discord API rate limited. Retry after ${retryAfter} seconds`)
-            } else if (status === 400) {
-                throw new Error(`Invalid message data: ${JSON.stringify(detail)}`)
-            }
-
-            throw new Error(`Discord API Error (${status}): ${JSON.stringify(detail)}`)
+            throw new Error(getErrorMessage(err))
         }
 
         // 6. Return structured output
@@ -248,4 +240,4 @@ export class DiscordSendMessage {
     }
 }
 
-module.exports = { nodeClass: DiscordSendMessage }
+export default DiscordMessageSend
