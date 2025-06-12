@@ -2,7 +2,7 @@ import { INodeParams, INodeData, ICommonObject } from '../../../../src/Interface
 import { getCredentialData, getCredentialParam } from '../../../../src/utils'
 import axios from 'axios'
 import { DiscordMessage, DiscordMessagesOutput } from '../types'
-import getErrorMessage from '../utils'
+import { getErrorMessage, validSnowflakeId } from '../utils'
 
 /**
  * Discord Channel Messages (supporting before, after, around)
@@ -102,19 +102,19 @@ class DiscordMessageRetrieve {
             throw new Error('Channel ID is required and cannot be empty')
         }
 
-        if (!/^\d{17,19}$/.test(channelId.trim())) {
+        if (!validSnowflakeId(channelId.trim())) {
             throw new Error('Channel ID must be a valid Discord snowflake (17-19 digit number)')
         }
 
-        if (beforeId && !/^\d{17,19}$/.test(beforeId)) {
+        if (beforeId && !validSnowflakeId(beforeId)) {
             throw new Error('Invalid beforeId snowflake')
         }
 
-        if (afterId && !/^\d{17,19}$/.test(afterId)) {
+        if (afterId && !validSnowflakeId(afterId)) {
             throw new Error('Invalid afterId snowflake')
         }
 
-        if (aroundId && !/^\d{17,19}$/.test(aroundId)) {
+        if (aroundId && !validSnowflakeId(aroundId)) {
             throw new Error('Invalid aroundId snowflake')
         }
 

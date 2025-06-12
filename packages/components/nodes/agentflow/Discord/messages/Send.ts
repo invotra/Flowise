@@ -2,7 +2,7 @@ import { INodeParams, INodeData, ICommonObject } from '../../../../src/Interface
 import { getCredentialData, getCredentialParam } from '../../../../src/utils'
 import axios from 'axios'
 import { DiscordSendMessageOutput, DiscordMessage } from '../types'
-import getErrorMessage from '../utils'
+import { getErrorMessage, validSnowflakeId } from '../utils'
 
 /**
  * Discord Send Message
@@ -137,7 +137,7 @@ class DiscordMessageSend {
             throw new Error('Channel ID is required and cannot be empty')
         }
 
-        if (!/^\d{17,19}$/.test(channelId.trim())) {
+        if (!validSnowflakeId(channelId.trim())) {
             throw new Error('Channel ID must be a valid Discord snowflake (17-19 digit number)')
         }
 
@@ -183,7 +183,7 @@ class DiscordMessageSend {
 
         // Add reply reference if provided
         if (replyToMessageId?.trim()) {
-            if (!/^\d{17,19}$/.test(replyToMessageId.trim())) {
+            if (!validSnowflakeId(replyToMessageId.trim())) {
                 throw new Error('Reply message ID must be a valid Discord snowflake')
             }
             payload.message_reference = {

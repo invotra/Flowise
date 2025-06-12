@@ -1,4 +1,4 @@
-function getErrorMessage(err: any): string {
+export function getErrorMessage(err: any): string {
     if (!err.response) {
         return `Network error when contacting Discord: ${err.message}`
     }
@@ -23,4 +23,7 @@ function getErrorMessage(err: any): string {
     return `Discord API Error (${status}): ${JSON.stringify(detail)}`
 }
 
-export default getErrorMessage
+// Validates a Discord snowflake ID (17-19 digit number)
+export function validSnowflakeId(snowflake: string): boolean {
+    return /^\d{17,19}$/.test(snowflake)
+}
