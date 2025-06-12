@@ -10,7 +10,7 @@ The Discord Agentflow node enables retrieving and sending messages in a Discord 
     - **apiVersion**: (Optional) Discord API version, default is `v10`.
 - **Inputs**:
   - **channelId** (`string`, required)
-     The Discord channel’s unique Snowflake ID.
+     The Discord channel’s unique [Snowflake](https://discord.com/developers/docs/reference#snowflakes) ID.
   - **mode** (`enum`, required)
      Operation mode of the node:
     - `retrieve` – fetch messages from the channel.
