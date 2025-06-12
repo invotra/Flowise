@@ -14,7 +14,7 @@ export class Discord_Agentflow implements INode {
     icon = 'discord.svg'
     type = 'utility'
     category = 'Agent Flows'
-    description = 'Send a message to a Discord channel using your bot token'
+    description = 'Send and retrieve messages to a Discord channel using your bot token'
     color = '#7289DA'
     baseClasses = [this.type]
 
