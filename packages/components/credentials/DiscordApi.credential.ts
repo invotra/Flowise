@@ -1,6 +1,6 @@
 import { INodeParams, INodeCredential } from '../src/Interface'
 
-class DiscordBot implements INodeCredential {
+class DiscordBotToken implements INodeCredential {
     label: string
     name: string
     description: string
@@ -9,7 +9,7 @@ class DiscordBot implements INodeCredential {
 
     constructor() {
         this.label = 'Discord Bot Token'
-        this.name = 'discordBot'
+        this.name = 'discordBotToken'
         this.version = 1.0
         this.description = 'Discord Bot token used to authenticate API calls'
 
@@ -34,4 +34,4 @@ class DiscordBot implements INodeCredential {
     }
 }
 
-module.exports = { credClass: DiscordBot }
+module.exports = { credClass: DiscordBotToken }

@@ -23,7 +23,7 @@ export class Discord_Agentflow implements INode {
         label: 'Discord Bot Credential',
         name: 'credential',
         type: 'credential',
-        credentialNames: ['discordBot'],
+        credentialNames: ['discordBotToken'],
         optional: false
     }
 
